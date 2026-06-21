@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Meu Treino</title>
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#000000" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Meu Treino" />
+  <link rel="apple-touch-icon" href="icon.svg" />
+  <link rel="icon" href="icon.svg" type="image/svg+xml" />
+
+  <!-- Fonte arredondada -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="layout">
+    <!-- ===== COLUNA LATERAL ===== -->
+    <aside class="sidebar">
+      <h1 class="logo">Meu Treino</h1>
+
+      <div class="search">
+        <input type="text" id="busca" placeholder="Buscar treino..." />
+      </div>
+
+      <nav class="side-nav">
+        <button class="nav-item active" data-tab="hoje">
+          <svg class="ico" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg> Treino de Hoje
+        </button>
+        <button class="nav-item" data-tab="sugestoes">
+          <svg class="ico" viewBox="0 0 24 24"><path d="M9 18h6M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.3 1 2.1h6c0-.8.4-1.6 1-2.1A7 7 0 0 0 12 2Z"/></svg> Sugestão de Treino
+        </button>
+        <button class="nav-item" data-tab="concluidos">
+          <svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8.5 12 2.5 2.5 4.5-5"/></svg> Treinos Concluídos
+        </button>
+        <button class="nav-item" data-tab="resultados">
+          <svg class="ico" viewBox="0 0 24 24"><path d="M3 20h18M7 20v-6M12 20V8M17 20v-9"/></svg> Resultados
+        </button>
+        <button class="nav-item" data-tab="dieta">
+          <svg class="ico" viewBox="0 0 24 24"><path d="M11 20A7 7 0 0 1 4 13C4 7 8 4 20 4c0 8-4 12-9 12Z"/><path d="M4 20c2-4 5-6 9-7"/></svg> Dieta
+        </button>
+      </nav>
+    </aside>
+
+    <!-- ===== CONTEÚDO ===== -->
+    <main>
+      <!-- TREINO DE HOJE -->
+      <section id="hoje" class="tab-panel active">
+        <!-- Sessão em andamento -->
+        <div id="sessao-ativa" class="hidden">
+          <div class="panel-head">
+            <h2 id="sessao-titulo">Treino de hoje</h2>
+            <div class="timers">
+              <div class="timer-box">
+                <span class="timer" title="Tempo total do treino"><svg class="tico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span id="cron-total">00:00</span></span>
+                <div class="timer-label">Tempo de Treino</div>
+              </div>
+              <div class="timer-box">
+                <div class="rest-row">
+                  <button id="descanso-btn" class="timer rest" title="Descanso — clique para iniciar a contagem regressiva"><svg class="tico" viewBox="0 0 24 24"><path d="M5 8h11v5a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4Z"/><path d="M16 9h2a2 2 0 0 1 0 4h-2"/><path d="M8 3v1.5M11 3v1.5"/></svg><span id="cron-descanso">01:30</span></button>
+                  <div class="rest-steppers">
+                    <button id="descanso-mais" class="stepper" title="+15s">▲</button>
+                    <button id="descanso-menos" class="stepper" title="-15s">▼</button>
+                  </div>
+                  <button id="descanso-reset" class="rest-reset" title="Resetar descanso" disabled>
+                    <svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>
+                  </button>
+                </div>
+                <div class="timer-label">Descanso</div>
+              </div>
+            </div>
+          </div>
+          <button id="pip-btn" class="btn ghost pip-btn">
+            <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><rect x="11" y="11" width="8" height="6" rx="1"/></svg>
+            Flutuar cronômetro (usar com outros apps)
+          </button>
+          <div id="sessao-exercicios"></div>
+
+          <!-- Adicionar exercício durante a sessão -->
+          <div class="add-ex-sessao">
+            <select id="sess-grupo"><option value="">Grupo muscular</option></select>
+            <select id="sess-sugestao" disabled><option value="">Exercício</option></select>
+            <button id="add-ex-sessao-btn" class="btn primary">+ Exercício</button>
+          </div>
+
+          <div class="sessao-acoes">
+            <button id="cancelar-sessao-btn" class="btn ghost">Cancelar</button>
+            <button id="finalizar-sessao-btn" class="btn primary">Finalizar e salvar</button>
+          </div>
+
+          <canvas id="pip-canvas" width="480" height="270" class="pip-hidden"></canvas>
+          <video id="pip-video" muted playsinline class="pip-hidden"></video>
+        </div>
+
+        <!-- Seleção de treino -->
+        <div id="hoje-seletor">
+          <div class="panel-head">
+            <h2>Treino de Hoje</h2>
+            <button id="novo-treino-btn" class="btn primary">+ Novo treino</button>
+          </div>
+          <button id="treino-livre-btn" class="btn primary cta-livre">▶ Começar treino livre</button>
+          <button id="reabrir-hoje-btn" class="btn ghost cta-livre hidden">↺ Reabrir treino de hoje</button>
+          <p class="muted">Comece um treino livre (sem precisar de nome) e vá adicionando exercícios e séries, ou escolha um treino salvo abaixo.</p>
+          <div id="filtro-grupos" class="chips"></div>
+          <div id="lista-treinos" class="card-list"></div>
+          <p id="treinos-vazio" class="empty">Você ainda não criou nenhum treino. Clique em “+ Novo treino”.</p>
+          <p id="busca-vazio" class="empty hidden">Nenhum treino encontrado para a busca.</p>
+        </div>
+      </section>
+
+      <!-- SUGESTÃO DE TREINO -->
+      <section id="sugestoes" class="tab-panel">
+        <div class="panel-head"><h2>Sugestão de Treino</h2></div>
+        <p class="muted">Modelos prontos. Clique em “Adicionar aos meus treinos” e depois ajuste cargas no editor.</p>
+        <div id="filtro-sugestoes" class="chips"></div>
+        <div id="lista-sugestoes" class="card-list"></div>
+      </section>
+
+      <!-- TREINOS CONCLUÍDOS -->
+      <section id="concluidos" class="tab-panel">
+        <div class="panel-head">
+          <h2>Treinos Concluídos</h2>
+          <button id="limpar-historico-btn" class="btn ghost danger">Limpar tudo</button>
+        </div>
+
+        <!-- DASHBOARD -->
+        <div class="card dash">
+          <div class="dash-head">
+            <button id="mes-anterior" class="btn ghost small">◀</button>
+            <strong id="mes-titulo">Mês</strong>
+            <button id="mes-proximo" class="btn ghost small">▶</button>
+          </div>
+          <div class="cal-weekdays">
+            <span>Dom</span><span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span>
+          </div>
+          <div id="calendario" class="cal-grid"></div>
+          <div id="mes-resumo" class="card-meta" style="text-align:center;margin-top:10px"></div>
+        </div>
+
+        <h3>Esta semana</h3>
+        <div id="semana" class="week-strip"></div>
+
+        <h3>Sessões</h3>
+        <div id="lista-historico" class="card-list"></div>
+        <p id="historico-vazio" class="empty">Nenhuma sessão registrada ainda.</p>
+      </section>
+
+      <!-- RESULTADOS -->
+      <section id="resultados" class="tab-panel">
+        <div class="panel-head"><h2>Resultados</h2></div>
+        <div id="resumo-stats" class="stats-grid"></div>
+        <h3>Volume por grupo muscular</h3>
+        <div id="volume-grupos"></div>
+        <h3>Recordes de carga</h3>
+        <div id="recordes" class="card-list"></div>
+        <p id="resultados-vazio" class="empty">Conclua treinos para ver seus resultados aqui.</p>
+      </section>
+
+      <!-- DIETA -->
+      <section id="dieta" class="tab-panel">
+        <div class="panel-head"><h2>Dieta</h2></div>
+
+        <div class="card">
+          <div class="dieta-meta">
+            <label class="field" style="margin:0;flex:1">
+              Meta diária (kcal)
+              <input type="number" id="meta-kcal" min="0" step="50" placeholder="Ex: 2200" />
+            </label>
+          </div>
+          <div id="dieta-barra-wrap" class="barra-wrap">
+            <div id="dieta-barra" class="barra"></div>
+          </div>
+          <div id="dieta-total" class="card-meta"></div>
+        </div>
+
+        <h3>Adicionar alimento (hoje)</h3>
+        <div class="dieta-form">
+          <input type="text" id="dieta-nome" placeholder="Alimento / refeição" />
+          <input type="number" id="dieta-kcal" placeholder="kcal" min="0" />
+          <button id="add-alimento-btn" class="btn primary">+ Adicionar</button>
+        </div>
+
+        <div id="lista-dieta" class="card-list"></div>
+        <p id="dieta-vazio" class="empty">Nenhum alimento registrado hoje.</p>
+      </section>
+    </main>
+  </div>
+
+  <!-- MODAL: editor de treino -->
+  <div id="modal-treino" class="modal-overlay hidden">
+    <div class="modal">
+      <h2 id="modal-treino-titulo">Novo treino</h2>
+      <label class="field">
+        Nome do treino
+        <input type="text" id="treino-nome" placeholder="Ex: Peito e Tríceps" />
+      </label>
+
+      <h3>Exercícios</h3>
+      <div id="editor-exercicios"></div>
+      <button id="add-exercicio-btn" class="btn ghost">+ Adicionar exercício</button>
+
+      <div class="modal-acoes">
+        <button id="cancelar-treino-btn" class="btn ghost">Cancelar</button>
+        <button id="salvar-treino-btn" class="btn primary">Salvar treino</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
