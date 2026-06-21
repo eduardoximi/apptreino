@@ -6,92 +6,84 @@ const STORAGE = {
   dieta: 'mt_dieta',
   metaKcal: 'mt_meta_kcal',
   descansoAlvo: 'mt_descanso_alvo',
+  metaAgua: 'mt_meta_agua',
+  aguaHoje: 'mt_agua_hoje',
+  aguaLembrete: 'mt_agua_lembrete',
+  catalogo: 'mt_catalogo',
+  custom: 'mt_exercicios_custom',
 };
 
-// Grupos musculares disponíveis (escolhidos por menu, sem digitar)
-const GRUPOS = [
-  'Peito', 'Costas', 'Quadríceps', 'Glúteos', 'Ombros',
-  'Bíceps', 'Tríceps', 'Abdômen', 'Panturrilha', 'Cardio',
-];
+// Grupos musculares (derivados do catálogo ativo, definidos mais abaixo)
+let GRUPOS = [];
 
-// Catálogo de exercícios por grupo (lista pronta para selecionar sem digitar)
-const EXERCICIOS_POR_GRUPO = {
-  'Peito': {
-    'Halteres / Barra': [
-      'Supino Reto com Barra', 'Supino Inclinado com Barra', 'Supino Declinado com Barra',
-      'Supino Reto com Halteres', 'Supino Inclinado com Halteres', 'Supino Declinado com Halteres',
-      'Crucifixo Reto com Halteres', 'Crucifixo Inclinado com Halteres', 'Crucifixo Declinado com Halteres',
-      'Pullover com Halter',
-    ],
-    'Máquina': [
-      'Chest Press Horizontal', 'Chest Press Inclinado', 'Chest Press Declinado',
-      'Peck Deck (Voador)', 'Máquina Convergente para Peitoral',
-      'Supino na Smith Machine', 'Supino Inclinado na Smith Machine',
-    ],
-    'Polia': [
-      'Cross Over na Polia Alta', 'Cross Over na Polia Média', 'Cross Over na Polia Baixa',
-      'Crucifixo na Polia',
-    ],
+// Catálogo PADRÃO de exercícios por grupo (lista pronta para selecionar sem digitar)
+const CATALOGO_PADRAO = {
+  'Peito (Peitoral)': {
+    'Halteres / Barra': ['Supino reto', 'Supino inclinado', 'Supino declinado', 'Supino com halteres (reto/inclinado/declinado)', 'Crucifixo (reto/inclinado/declinado)', 'Pullover com halter'],
+    'Máquina': ['Supino máquina (Hammer/articulado)', 'Peck deck (voador)', 'Supino inclinado máquina'],
+    'Polia': ['Crossover (alto, médio, baixo)', 'Crucifixo na polia', 'Supino na polia'],
   },
-  'Costas': {
-    'Halteres / Barra': [
-      'Remada Curvada com Barra', 'Remada Cavalinho', 'Remada Unilateral com Halter',
-      'Levantamento Terra', 'Barra Fixa',
-    ],
-    'Máquina e Polia': [
-      'Puxada Frontal', 'Puxada Supinada', 'Puxada Neutra', 'Remada Baixa',
-      'Remada Articulada', 'Pulldown na Polia', 'Pullover na Máquina',
-    ],
+  'Costas (Dorsais)': {
+    'Halteres / Barra': ['Remada curvada com barra', 'Remada cavalinho (T-bar)', 'Remada unilateral com halter (serrote)', 'Levantamento terra', 'Barra fixa (peso corporal/lastro)'],
+    'Máquina': ['Remada máquina (articulada)', 'Pulldown máquina', 'Remada baixa máquina', 'Hiperextensão (banco romano)'],
+    'Polia': ['Puxada frontal (pegada aberta/supinada/neutra/triângulo)', 'Remada baixa (sentado)', 'Pullover na polia', 'Remada alta na polia', 'Face pull'],
   },
-  'Quadríceps': {
-    'Halteres / Barra': [
-      'Agachamento Livre', 'Agachamento Frontal', 'Afundo', 'Passada', 'Agachamento Búlgaro',
-    ],
-    'Máquina': [
-      'Leg Press 45°', 'Leg Press Horizontal', 'Hack Squat', 'Cadeira Extensora', 'Smith Machine Agachamento',
-    ],
-  },
-  'Glúteos': {
-    'Halteres / Barra': ['Hip Thrust', 'Elevação Pélvica'],
-    'Máquina': ['Máquina Glúteo', 'Abdutora', 'Adutora'],
-    'Polia': [
-      'Glúteo na Polia', 'Coice na Polia', 'Abdução de Quadril na Polia',
-      'Adução de Quadril na Polia', 'Hip Thrust na Polia', 'Pull Through',
-    ],
-  },
-  'Ombros': {
-    'Halteres / Barra': [
-      'Desenvolvimento com Barra', 'Desenvolvimento com Halteres', 'Elevação Lateral',
-      'Elevação Frontal', 'Crucifixo Invertido', 'Encolhimento com Barra', 'Encolhimento com Halteres',
-    ],
-    'Máquina': ['Desenvolvimento na Máquina', 'Elevação Lateral na Máquina', 'Peck Deck Invertido'],
-    'Polia': [
-      'Elevação Lateral na Polia', 'Elevação Frontal na Polia', 'Crucifixo Invertido na Polia',
-      'Desenvolvimento na Polia', 'Remada Alta na Polia', 'Y Raise na Polia',
-    ],
+  'Ombros (Deltóides) e Trapézio': {
+    'Halteres / Barra': ['Desenvolvimento militar (barra/halteres)', 'Elevação lateral', 'Elevação frontal', 'Elevação posterior (crucifixo inverso)', 'Remada alta', 'Arnold press', 'Encolhimento com barra', 'Encolhimento com halteres'],
+    'Máquina': ['Desenvolvimento máquina', 'Elevação lateral máquina', 'Peck deck inverso (posterior)', 'Encolhimento na máquina (Hammer/Smith)'],
+    'Polia': ['Elevação lateral na polia', 'Elevação frontal na polia', 'Crucifixo inverso na polia', 'Face pull', 'Remada alta na polia', 'Encolhimento na polia'],
   },
   'Bíceps': {
-    'Halteres / Barra': [
-      'Rosca Direta', 'Rosca W', 'Rosca Alternada', 'Rosca Martelo', 'Rosca Concentrada', 'Rosca Scott com Barra',
-    ],
-    'Máquina': ['Rosca Scott na Máquina', 'Rosca na Polia Baixa', 'Rosca Unilateral na Polia'],
-    'Polia': [
-      'Rosca Direta na Polia', 'Rosca Barra Reta na Polia', 'Rosca Barra W na Polia', 'Rosca Corda',
-      'Rosca Martelo na Polia', 'Rosca Scott na Polia', 'Rosca Alta na Polia',
-    ],
+    'Halteres / Barra': ['Rosca direta (barra reta/W)', 'Rosca alternada', 'Rosca martelo', 'Rosca concentrada', 'Rosca Scott (banco)', 'Rosca inclinada'],
+    'Máquina': ['Rosca Scott máquina', 'Rosca bíceps máquina'],
+    'Polia': ['Rosca na polia baixa (barra/corda)', 'Rosca martelo na corda', 'Rosca alta na polia'],
   },
   'Tríceps': {
-    'Halteres / Barra': ['Tríceps Francês', 'Tríceps Testa', 'Supino Fechado', 'Mergulho entre Bancos'],
-    'Máquina': ['Tríceps Máquina', 'Tríceps Corda', 'Tríceps Barra Reta na Polia', 'Tríceps Unilateral na Polia'],
-    'Polia': [
-      'Tríceps Barra Reta', 'Tríceps Barra W', 'Tríceps Corda na Polia',
-      'Tríceps Unilateral', 'Tríceps Francês na Polia',
-    ],
+    'Halteres / Barra': ['Tríceps testa (barra/halteres)', 'Tríceps francês', 'Supino fechado', 'Tríceps coice (kickback)', 'Mergulho/paralelas'],
+    'Máquina': ['Tríceps máquina', 'Mergulho máquina'],
+    'Polia': ['Tríceps pulley (barra reta/V/corda)', 'Tríceps unilateral', 'Tríceps invertido (pegada supinada)', 'Tríceps na polia por trás da cabeça'],
   },
-  'Abdômen': ['Abdominal supra', 'Prancha', 'Elevação de pernas', 'Abdominal infra', 'Russian twist', 'Abdominal na roda'],
-  'Panturrilha': ['Panturrilha em pé', 'Panturrilha sentado', 'Panturrilha no leg press'],
-  'Cardio': ['Esteira', 'Bicicleta', 'Elíptico', 'Pular corda', 'Escada (stair)', 'Remo ergômetro'],
+  'Antebraço': {
+    'Halteres / Barra': ['Rosca punho (flexora)', 'Rosca punho invertida (extensora)', 'Rosca inversa (pronada)', "Farmer's walk"],
+    'Máquina': ['Rosca de punho máquina'],
+    'Polia': ['Rosca de punho na polia'],
+  },
+  'Quadríceps': {
+    'Halteres / Barra': ['Agachamento livre', 'Agachamento frontal', 'Afundo/passada', 'Agachamento búlgaro', 'Agachamento Smith', 'Hack com barra'],
+    'Máquina': ['Leg press', 'Hack machine', 'Cadeira extensora', 'Agachamento máquina'],
+    'Polia': ['Agachamento na polia (variação)', 'Afundo na polia'],
+  },
+  'Posteriores de coxa (Isquiotibiais)': {
+    'Halteres / Barra': ['Stiff (terra romeno)', 'Levantamento terra', 'Good morning', 'Afundo (ênfase posterior)'],
+    'Máquina': ['Mesa flexora (deitado)', 'Cadeira flexora (sentado)', 'Flexora em pé'],
+    'Polia': ['Stiff na polia', 'Flexão de perna na polia (caneleira)'],
+  },
+  'Glúteos': {
+    'Halteres / Barra': ['Elevação pélvica (hip thrust)', 'Agachamento sumô', 'Afundo', 'Stiff', 'Levantamento terra'],
+    'Máquina': ['Hip thrust máquina', 'Glúteo máquina (coice)', 'Abdução máquina (cadeira abdutora)'],
+    'Polia': ['Coice de glúteo na polia (caneleira)', 'Abdução na polia', 'Hip thrust na polia'],
+  },
+  'Adutores e Abdutores': {
+    'Máquina': ['Cadeira adutora', 'Cadeira abdutora'],
+    'Polia': ['Adução na polia (caneleira)', 'Abdução na polia (caneleira)'],
+  },
+  'Panturrilhas': {
+    'Halteres / Barra': ['Panturrilha em pé com barra/halteres', 'Panturrilha sentado com halter'],
+    'Máquina': ['Panturrilha em pé (gêmeos) máquina', 'Panturrilha sentado (sóleo) máquina', 'Panturrilha no leg press'],
+    'Polia': ['Panturrilha na polia (variação)'],
+  },
+  'Abdômen / Core': {
+    'Halteres / Barra': ['Abdominal com anilha', 'Prancha (peso corporal)', 'Russian twist com peso', 'Elevação de pernas'],
+    'Máquina': ['Abdominal máquina', 'Máquina de oblíquos/rotação'],
+    'Polia': ['Abdominal na polia (rosca/crunch ajoelhado)', 'Oblíquo na polia (pallof press, lenhador/wood chopper)'],
+  },
 };
+
+// Catálogo ATIVO: usa o importado (localStorage) se existir, senão o padrão
+let EXERCICIOS_POR_GRUPO = carregar(STORAGE.catalogo, CATALOGO_PADRAO);
+GRUPOS = Object.keys(EXERCICIOS_POR_GRUPO);
+// Exercícios personalizados (overlay por grupo) — sobrevivem a updates/imports
+let exerciciosCustom = carregar(STORAGE.custom, {});
 
 // Treinos sugeridos (modelos prontos) — agrupados por objetivo
 const TREINOS_SUGERIDOS = [
@@ -148,6 +140,26 @@ const TREINOS_SUGERIDOS = [
     ],
   },
   {
+    nome: 'Costas e Bíceps (ABC - B)', categoria: 'Hipertrofia',
+    exercicios: [
+      { nome: 'Puxada frontal', grupo: 'Costas', series: 4, reps: 10 },
+      { nome: 'Remada curvada', grupo: 'Costas', series: 3, reps: 10 },
+      { nome: 'Remada baixa', grupo: 'Costas', series: 3, reps: 12 },
+      { nome: 'Rosca direta', grupo: 'Bíceps', series: 3, reps: 12 },
+      { nome: 'Rosca martelo', grupo: 'Bíceps', series: 3, reps: 12 },
+    ],
+  },
+  {
+    nome: 'Pernas e Ombros (ABC - C)', categoria: 'Hipertrofia',
+    exercicios: [
+      { nome: 'Agachamento livre', grupo: 'Quadríceps', series: 4, reps: 10 },
+      { nome: 'Leg press', grupo: 'Quadríceps', series: 4, reps: 12 },
+      { nome: 'Cadeira extensora', grupo: 'Quadríceps', series: 3, reps: 15 },
+      { nome: 'Desenvolvimento', grupo: 'Ombros', series: 3, reps: 12 },
+      { nome: 'Elevação lateral', grupo: 'Ombros', series: 3, reps: 15 },
+    ],
+  },
+  {
     nome: 'Cardio + Abdômen', categoria: 'Cardio',
     exercicios: [
       { nome: 'Esteira', grupo: 'Cardio', series: 1, reps: 20 },
@@ -159,27 +171,79 @@ const TREINOS_SUGERIDOS = [
   },
 ];
 
-// Retorna a lista plana de exercícios de um grupo (com ou sem subgrupos)
-function listaExercicios(grupo) {
-  const dados = EXERCICIOS_POR_GRUPO[grupo];
-  if (!dados) return [];
-  return Array.isArray(dados) ? dados : Object.values(dados).flat();
+// Expande "Base (a/b)" ou "Base (a, b)" em ["Base (a)", "Base (b)"] para selecionar cada variação
+function expandirVariacoes(nome) {
+  const m = String(nome).match(/^(.*?)\s*\(([^)]*[\/,][^)]*)\)\s*$/);
+  if (!m) return [nome];
+  const base = m[1].trim();
+  const vars = m[2].split(/[\/,]/).map((s) => s.trim()).filter(Boolean);
+  if (vars.length < 2) return [nome];
+  return vars.map((v) => `${base} (${v})`);
 }
 
-// Monta o HTML de <option>/<optgroup> de um grupo para um <select>
+// Lista plana de exercícios selecionáveis (variações expandidas + personalizados)
+function listaExercicios(grupo) {
+  const dados = EXERCICIOS_POR_GRUPO[grupo];
+  const base = !dados ? [] : (Array.isArray(dados) ? dados : Object.values(dados).flat());
+  return [...base.flatMap(expandirVariacoes), ...(exerciciosCustom[grupo] || [])];
+}
+
+// Monta o HTML de <option>/<optgroup> de um grupo (variações expandidas + personalizados)
 function opcoesExercicios(grupo, selecionado, placeholder) {
   const dados = EXERCICIOS_POR_GRUPO[grupo];
   const opt = (e) => `<option value="${escapar(e)}" ${selecionado === e ? 'selected' : ''}>${escapar(e)}</option>`;
+  const opts = (lista) => lista.flatMap(expandirVariacoes).map(opt).join('');
   let html = `<option value="">${placeholder}</option>`;
-  if (!dados) return html;
-  if (Array.isArray(dados)) {
-    html += dados.map(opt).join('');
-  } else {
-    html += Object.entries(dados)
-      .map(([sub, lista]) => `<optgroup label="${escapar(sub)}">${lista.map(opt).join('')}</optgroup>`)
-      .join('');
+  if (dados) {
+    if (Array.isArray(dados)) {
+      html += opts(dados);
+    } else {
+      html += Object.entries(dados)
+        .map(([sub, lista]) => `<optgroup label="${escapar(sub)}">${opts(lista)}</optgroup>`)
+        .join('');
+    }
   }
+  const custom = exerciciosCustom[grupo] || [];
+  if (custom.length) html += `<optgroup label="Personalizados">${custom.map(opt).join('')}</optgroup>`;
   return html;
+}
+
+// Salva um exercício personalizado na lista do grupo (persistente)
+function adicionarExercicioCatalogo(grupo, nome) {
+  if (!grupo || !nome) return 'erro';
+  if (listaExercicios(grupo).includes(nome)) return 'dup';
+  (exerciciosCustom[grupo] = exerciciosCustom[grupo] || []).push(nome);
+  salvar(STORAGE.custom, exerciciosCustom);
+  montarDatalistExercicios();
+  return 'ok';
+}
+
+// Descobre a que grupo pertence um exercício (para autopreencher)
+function grupoDoExercicio(nome) {
+  for (const g of GRUPOS) {
+    if (listaExercicios(g).includes(nome)) return g;
+  }
+  return '';
+}
+
+// Monta (uma vez) o <datalist> com TODOS os exercícios do catálogo
+function montarDatalistExercicios() {
+  let dl = document.getElementById('lista-todos-exercicios');
+  if (!dl) {
+    dl = document.createElement('datalist');
+    dl.id = 'lista-todos-exercicios';
+    document.body.appendChild(dl);
+  }
+  const vistos = new Set();
+  const itens = [];
+  for (const g of GRUPOS) {
+    for (const nome of listaExercicios(g)) {
+      if (vistos.has(nome)) continue;
+      vistos.add(nome);
+      itens.push(`<option value="${escapar(nome)}">${escapar(g)}</option>`);
+    }
+  }
+  dl.innerHTML = itens.join('');
 }
 
 // ---- Estado em memória ----
@@ -187,6 +251,12 @@ let treinos = carregar(STORAGE.treinos, []);
 let historico = carregar(STORAGE.historico, []);
 let dieta = carregar(STORAGE.dieta, []);
 let metaKcal = carregar(STORAGE.metaKcal, 0);
+// Reseta sempre ao entrar na página (padrão fixo: 2,5 L / 500 ml / 90 min)
+let metaAgua = 2500;
+let aguaHoje = carregar(STORAGE.aguaHoje, { dia: '', ml: 0 }); // consumo do dia continua salvo
+let lembreteAgua = { ml: 500, min: 90 };
+let aguaLembreteFim = null;
+let aguaLembreteId = null;
 let sessaoAtual = null;      // { treinoId, nome, inicio, exercicios: [...] }
 let cronometroId = null;
 let filtroGrupo = null;      // null = todos
@@ -222,6 +292,8 @@ function trocarAba(nome) {
   document.querySelectorAll('.tab-panel').forEach((p) =>
     p.classList.toggle('active', p.id === nome)
   );
+  // Esconde o cabeçalho (logo + busca) nas abas sem relação com treinos
+  document.body.classList.toggle('sem-topo', nome === 'resultados' || nome === 'dieta');
   if (nome === 'hoje') renderTreinos();
   if (nome === 'sugestoes') renderSugestoes();
   if (nome === 'concluidos') renderHistorico();
@@ -290,34 +362,35 @@ function renderTreinos() {
 
   visiveis.forEach((t) => {
     const card = document.createElement('div');
-    card.className = 'card';
+    card.className = 'card treino-card';
     const itens = t.exercicios
       .map(
         (ex) =>
-          `<li><span>${escapar(ex.nome)}${ex.grupo ? `<span class="grupo-tag">${escapar(ex.grupo)}</span>` : ''}</span> <span>${ex.series}×${ex.reps} • ${ex.carga || 0}kg${ex.pesoMaquina ? ` • máq.${ex.pesoMaquina}` : ''}</span></li>`
+          `<li><span>${escapar(ex.nome)}${ex.grupo ? `<span class="grupo-tag">${escapar(ex.grupo)}</span>` : ''}</span> <span>${ex.series}×${ex.reps}${ex.carga ? ` • ${ex.carga}kg` : ''}${ex.pesoMaquina ? ` • máq.${ex.pesoMaquina}` : ''}</span></li>`
       )
       .join('');
     card.innerHTML = `
-      <div class="card-head">
-        <div>
-          <h3>${escapar(t.nome)}</h3>
-          <div class="card-meta">${t.exercicios.length} exercício(s)</div>
-        </div>
-        <div class="card-actions">
-          <button class="btn primary small" data-acao="iniciar">Iniciar ▶</button>
-          <button class="btn small" data-acao="editar">Editar</button>
-          <button class="btn small danger" data-acao="excluir">×</button>
-        </div>
-      </div>
+      <button class="card-x" data-acao="excluir" title="Excluir treino">×</button>
+      <h3 class="treino-nome">${escapar(t.nome)}</h3>
+      <div class="card-meta">${t.exercicios.length} exercício(s)</div>
       <ul class="exercicio-resumo">${itens}</ul>
+      <div class="treino-acoes">
+        <button class="btn primary small" data-acao="iniciar">Iniciar ▶</button>
+        <button class="btn small" data-acao="programar">Programar</button>
+        <button class="btn small icon-btn" data-acao="editar" title="Editar">
+          <svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+        </button>
+      </div>
     `;
     card.querySelector('[data-acao="iniciar"]').onclick = () => iniciarSessao(t);
+    card.querySelector('[data-acao="programar"]').onclick = () => programarTreino(t.id);
     card.querySelector('[data-acao="editar"]').onclick = () => abrirEditor(t.id);
     card.querySelector('[data-acao="excluir"]').onclick = () => excluirTreino(t.id);
     listaTreinosEl.appendChild(card);
   });
 
   atualizarReabrirHoje();
+  renderUltimosTreinos();
 }
 
 // Botão "Reabrir treino de hoje" — aparece se houver sessão concluída hoje
@@ -338,11 +411,105 @@ function atualizarReabrirHoje() {
   reabrirHojeBtn.classList.toggle('hidden', !tem);
 }
 
+// Carrossel horizontal com os últimos treinos realizados (nome + data)
+function renderUltimosTreinos() {
+  const cont = document.getElementById('ultimos-treinos');
+  const titulo = document.getElementById('ultimos-titulo');
+  cont.innerHTML = '';
+  titulo.classList.remove('hidden');
+  cont.classList.remove('hidden');
+
+  const card = (h) => {
+    const el = document.createElement('div');
+    el.className = 'mini-treino';
+    el.innerHTML = `
+      <div class="mini-nome">${escapar(h.nome)}</div>
+      <div class="mini-data">${formatarData(h.data)}</div>
+      <div class="mini-meta">${h.seriesFeitas}/${h.seriesTotal} séries • ${h.volume} kg</div>
+    `;
+    return el;
+  };
+
+  // Busca: treinos já realizados + sugestões de treino que combinam
+  if (busca) {
+    titulo.textContent = 'Resultados da busca';
+    const feitos = historico.filter((h) => h.nome.toLowerCase().includes(busca)).slice(0, 20);
+    const sugeridos = TREINOS_SUGERIDOS.filter((s) => {
+      const hay = (s.nome + ' ' + s.categoria + ' ' +
+        s.exercicios.map((e) => e.grupo + ' ' + e.nome).join(' ')).toLowerCase();
+      return hay.includes(busca);
+    });
+
+    if (feitos.length === 0 && sugeridos.length === 0) {
+      cont.innerHTML = '<div class="mini-treino mini-motiva"><div class="mini-motiva-txt">Nenhum treino encontrado.</div></div>';
+      return;
+    }
+
+    feitos.forEach((h) => cont.appendChild(card(h)));
+    sugeridos.forEach((s) => {
+      const el = document.createElement('div');
+      el.className = 'mini-treino mini-sugestao';
+      el.innerHTML = `
+        <div class="mini-tag">Sugestão</div>
+        <div class="mini-nome">${escapar(s.nome)}</div>
+        <div class="mini-motiva-txt">${s.exercicios.length} exercícios • ${escapar(s.categoria)}</div>
+        <button class="btn primary small mini-add">+ Adicionar</button>
+      `;
+      el.querySelector('.mini-add').onclick = () => adicionarSugestao(s);
+      cont.appendChild(el);
+    });
+    return;
+  }
+
+  titulo.textContent = 'Últimos treinos';
+  const programados = treinos
+    .filter((t) => t.dataProgramada)
+    .sort((a, b) => a.dataProgramada.localeCompare(b.dataProgramada));
+  const recentes = historico.slice(0, 15);
+
+  // Usuário novo (nada feito e nada programado): quadro motivacional
+  if (programados.length === 0 && recentes.length === 0) {
+    const c = document.createElement('div');
+    c.className = 'mini-treino mini-motiva';
+    c.innerHTML = `<div class="mini-nome">Bora começar! 💪</div><div class="mini-motiva-txt">Toque em “Começar treino livre” e registre seu primeiro treino.</div>`;
+    cont.appendChild(c);
+    return;
+  }
+
+  // Treinos programados (próximos primeiro)
+  programados.forEach((t) => {
+    const el = document.createElement('div');
+    el.className = 'mini-treino mini-prog';
+    el.innerHTML = `
+      <button class="mini-x" type="button" title="Excluir treino">×</button>
+      <div class="mini-tag">Programado</div>
+      <div class="mini-nome">${escapar(t.nome)}</div>
+      <div class="mini-data">${isoParaDDMMYYYY(t.dataProgramada)}</div>
+    `;
+    el.querySelector('.mini-x').onclick = () => {
+      if (!confirm(`Deseja realmente excluir o treino "${t.nome}"?`)) return;
+      treinos = treinos.filter((x) => x.id !== t.id);
+      salvar(STORAGE.treinos, treinos);
+      renderTreinos();
+    };
+    cont.appendChild(el);
+  });
+
+  // Últimos treinos realizados
+  recentes.forEach((h) => cont.appendChild(card(h)));
+}
+
 function excluirTreino(id) {
   if (!confirm('Excluir este treino?')) return;
   treinos = treinos.filter((t) => t.id !== id);
   salvar(STORAGE.treinos, treinos);
   renderTreinos();
+}
+
+// Abre o editor já com o calendário aberto, para programar a data do treino
+function programarTreino(id) {
+  abrirEditor(id);
+  setTimeout(() => abrirDP(), 0);
 }
 
 // =====================================================================
@@ -351,11 +518,98 @@ function excluirTreino(id) {
 const modal = document.getElementById('modal-treino');
 const modalTitulo = document.getElementById('modal-treino-titulo');
 const inputNome = document.getElementById('treino-nome');
+const inputData = document.getElementById('treino-data');
 const editorExerciciosEl = document.getElementById('editor-exercicios');
 let editandoId = null;
+let editorNomeManual = false; // true quando a pessoa digitou o nome do treino
+
+// Se a pessoa digitar o nome, vira manual; se apagar, volta ao automático por grupos
+inputNome.addEventListener('input', () => {
+  editorNomeManual = inputNome.value.trim() !== '';
+});
+
+// ----- Seletor de data com calendário do mês -----
+const dpCal = document.getElementById('dp-cal');
+let dpAno, dpMes;
+
+inputData.addEventListener('focus', abrirDP);
+inputData.addEventListener('click', abrirDP);
+document.addEventListener('click', (e) => {
+  if (!dpCal.classList.contains('hidden') && !dpCal.contains(e.target) && e.target !== inputData) {
+    dpCal.classList.add('hidden');
+  }
+});
+
+function abrirDP() {
+  const iso = ddmmyyyyParaISO(inputData.value.trim());
+  if (iso) { const [y, m] = iso.split('-').map(Number); dpAno = y; dpMes = m - 1; }
+  else { const h = new Date(); dpAno = h.getFullYear(); dpMes = h.getMonth(); }
+  renderDP();
+  dpCal.classList.remove('hidden');
+}
+
+function renderDP() {
+  const primeiroDia = new Date(dpAno, dpMes, 1).getDay();
+  const diasNoMes = new Date(dpAno, dpMes + 1, 0).getDate();
+  const titulo = new Date(dpAno, dpMes, 1).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+  let dias = '';
+  for (let i = 0; i < primeiroDia; i++) dias += '<span class="dp-empty"></span>';
+  for (let dia = 1; dia <= diasNoMes; dia++) dias += `<button type="button" class="dp-dia" data-dia="${dia}">${dia}</button>`;
+  dpCal.innerHTML = `
+    <div class="dp-head">
+      <button type="button" class="dp-nav" data-nav="-1">◀</button>
+      <strong>${titulo}</strong>
+      <button type="button" class="dp-nav" data-nav="1">▶</button>
+    </div>
+    <div class="dp-week"><span>D</span><span>S</span><span>T</span><span>Q</span><span>Q</span><span>S</span><span>S</span></div>
+    <div class="dp-grid">${dias}</div>
+  `;
+  dpCal.querySelectorAll('.dp-nav').forEach((b) => {
+    b.onclick = () => {
+      dpMes += +b.dataset.nav;
+      if (dpMes < 0) { dpMes = 11; dpAno--; }
+      if (dpMes > 11) { dpMes = 0; dpAno++; }
+      renderDP();
+    };
+  });
+  dpCal.querySelectorAll('.dp-dia').forEach((b) => {
+    b.onclick = () => {
+      const dia = +b.dataset.dia;
+      inputData.value = `${String(dia).padStart(2, '0')}/${String(dpMes + 1).padStart(2, '0')}/${dpAno}`;
+      dpCal.classList.add('hidden');
+    };
+  });
+}
+
+// Preenche o nome do treino com os grupos escolhidos (Peito + Bíceps...) se não for manual
+function atualizarNomeTreinoAuto() {
+  if (editorNomeManual) return;
+  const grupos = [];
+  editorExerciciosEl.querySelectorAll('.ex-grupo').forEach((sel) => {
+    if (sel.value && !grupos.includes(sel.value)) grupos.push(sel.value);
+  });
+  inputNome.value = grupos.join(' + ');
+}
+
+// Conversões entre dd/mm/aaaa (tela) e AAAA-MM-DD (armazenado)
+function ddmmyyyyParaISO(str) {
+  const m = (str || '').match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (!m) return '';
+  const [, d, mo, y] = m;
+  const dt = new Date(+y, +mo - 1, +d);
+  if (dt.getMonth() !== +mo - 1 || dt.getDate() !== +d) return '';
+  return `${y}-${mo}-${d}`;
+}
+function isoParaDDMMYYYY(iso) {
+  const m = (iso || '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  return m ? `${m[3]}/${m[2]}/${m[1]}` : '';
+}
 
 document.getElementById('novo-treino-btn').onclick = () => abrirEditor(null);
-document.getElementById('add-exercicio-btn').onclick = () => adicionarLinhaExercicio();
+document.getElementById('add-exercicio-btn').onclick = () => {
+  editorExerciciosEl.querySelectorAll('.exercicio-editor').forEach((el) => el.classList.add('colapsado'));
+  adicionarLinhaExercicio();
+};
 document.getElementById('cancelar-treino-btn').onclick = fecharEditor;
 document.getElementById('salvar-treino-btn').onclick = salvarTreino;
 
@@ -366,10 +620,14 @@ function abrirEditor(id) {
     const t = treinos.find((x) => x.id === id);
     modalTitulo.textContent = 'Editar treino';
     inputNome.value = t.nome;
+    inputData.value = isoParaDDMMYYYY(t.dataProgramada);
+    editorNomeManual = true;
     t.exercicios.forEach((ex) => adicionarLinhaExercicio(ex));
   } else {
     modalTitulo.textContent = 'Novo treino';
     inputNome.value = '';
+    inputData.value = '';
+    editorNomeManual = false;
     adicionarLinhaExercicio();
   }
   modal.classList.remove('hidden');
@@ -378,6 +636,7 @@ function abrirEditor(id) {
 
 function fecharEditor() {
   modal.classList.add('hidden');
+  dpCal.classList.add('hidden');
   editandoId = null;
 }
 
@@ -389,7 +648,8 @@ function adicionarLinhaExercicio(dados = {}) {
   ).join('');
   div.innerHTML = `
     <div class="linha">
-      <input type="text" class="ex-nome" placeholder="Nome do exercício" value="${escapar(dados.nome || '')}" />
+      <input type="text" class="ex-nome" list="lista-todos-exercicios" autocomplete="off" placeholder="Busque o nome do exercício" value="${escapar(dados.nome || '')}" />
+      <button class="ex-min" type="button" title="Minimizar/expandir"><svg class="chev" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></button>
       <button class="remover-ex" title="Remover">×</button>
     </div>
     <div class="campo-duplo">
@@ -406,9 +666,8 @@ function adicionarLinhaExercicio(dados = {}) {
     <div class="nums">
       <label>Séries<input type="number" class="ex-series" min="1" value="${dados.series ?? 3}" /></label>
       <label>Reps<input type="number" class="ex-reps" min="1" value="${dados.reps ?? 10}" /></label>
-      <label>Carga (kg)<input type="number" class="ex-carga" min="0" step="0.5" value="${dados.carga ?? 0}" /></label>
-      <label>Peso da máquina<input type="number" class="ex-maquina" min="0" step="0.5" value="${dados.pesoMaquina ?? 0}" /></label>
     </div>
+    <button class="btn small ghost salvar-ex-lista" type="button">+ Salvar este exercício na minha lista</button>
   `;
 
   const grupoSel = div.querySelector('.ex-grupo');
@@ -422,13 +681,39 @@ function adicionarLinhaExercicio(dados = {}) {
   }
   popularSugestoes();
 
-  grupoSel.onchange = () => { popularSugestoes(); };
+  grupoSel.onchange = () => { popularSugestoes(); atualizarNomeTreinoAuto(); };
   // Ao escolher da lista, preenche o nome (mas o campo de texto continua editável)
   sugestaoSel.onchange = () => {
     if (sugestaoSel.value) nomeInput.value = sugestaoSel.value;
   };
+  // Digitar/escolher no nome filtra todos os exercícios e espelha na lista "Exercício (lista)"
+  nomeInput.addEventListener('input', () => {
+    const valor = nomeInput.value.trim();
+    const g = grupoDoExercicio(valor);
+    if (g && grupoSel.value !== g) {
+      grupoSel.value = g;
+      popularSugestoes();
+    }
+    sugestaoSel.value = valor; // reflete a seleção na lista (igual à aba do exercício)
+    atualizarNomeTreinoAuto();
+  });
 
-  div.querySelector('.remover-ex').onclick = () => div.remove();
+  div.querySelector('.ex-min').onclick = () => div.classList.toggle('colapsado');
+  div.querySelector('.remover-ex').onclick = () => {
+    if (!confirm('Excluir este exercício?')) return;
+    div.remove();
+    atualizarNomeTreinoAuto();
+  };
+  // Salvar o nome digitado como exercício personalizado do grupo
+  div.querySelector('.salvar-ex-lista').onclick = () => {
+    const nome = nomeInput.value.trim();
+    const grupo = grupoSel.value;
+    if (!nome) { alert('Digite o nome do exercício.'); return; }
+    if (!grupo) { alert('Escolha o grupo muscular primeiro.'); return; }
+    const r = adicionarExercicioCatalogo(grupo, nome);
+    if (r === 'ok') { popularSugestoes(); toast('Exercício salvo na sua lista!'); }
+    else if (r === 'dup') toast('Esse exercício já está na lista.');
+  };
   editorExerciciosEl.appendChild(div);
 }
 
@@ -444,18 +729,20 @@ function salvarTreino() {
       grupo: el.querySelector('.ex-grupo').value,
       series: Math.max(1, parseInt(el.querySelector('.ex-series').value) || 1),
       reps: Math.max(1, parseInt(el.querySelector('.ex-reps').value) || 1),
-      carga: Math.max(0, parseFloat(el.querySelector('.ex-carga').value) || 0),
-      pesoMaquina: Math.max(0, parseFloat(el.querySelector('.ex-maquina').value) || 0),
+      carga: 0,
+      pesoMaquina: 0,
     });
   });
   if (exercicios.length === 0) { alert('Adicione ao menos um exercício.'); return; }
 
+  const dataProgramada = ddmmyyyyParaISO(inputData.value.trim());
   if (editandoId) {
     const t = treinos.find((x) => x.id === editandoId);
     t.nome = nome;
     t.exercicios = exercicios;
+    t.dataProgramada = dataProgramada;
   } else {
-    treinos.push({ id: novoId(), nome, exercicios });
+    treinos.push({ id: novoId(), nome, exercicios, dataProgramada });
   }
   salvar(STORAGE.treinos, treinos);
   fecharEditor();
@@ -469,6 +756,7 @@ function salvarTreino() {
 const seletorEl = document.getElementById('hoje-seletor');
 const sessaoAtivaEl = document.getElementById('sessao-ativa');
 const sessaoExerciciosEl = document.getElementById('sessao-exercicios');
+const sessaoNomeInput = document.getElementById('sessao-nome');
 const cronTotalEl = document.getElementById('cron-total');
 const cronDescansoEl = document.getElementById('cron-descanso');
 const descansoBtn = document.getElementById('descanso-btn');
@@ -478,11 +766,11 @@ const sessSugestaoSel = document.getElementById('sess-sugestao');
 const PASSO_DESCANSO = 15; // segundos por clique nas setas
 let descansoAlvo = Math.max(15, carregar(STORAGE.descansoAlvo, 90)); // segundos (padrão 1:30)
 let descansoFim = null;   // timestamp em que a contagem regressiva termina
+let nomeManual = false;   // true quando a pessoa digitou um nome próprio
 
 document.getElementById('cancelar-sessao-btn').onclick = cancelarSessao;
 document.getElementById('finalizar-sessao-btn').onclick = finalizarSessao;
 document.getElementById('treino-livre-btn').onclick = iniciarSessaoLivre;
-descansoBtn.onclick = iniciarDescanso;
 document.getElementById('add-ex-sessao-btn').onclick = adicionarExercicioSessao;
 const descansoMaisBtn = document.getElementById('descanso-mais');
 const descansoMenosBtn = document.getElementById('descanso-menos');
@@ -491,6 +779,39 @@ descansoMaisBtn.onclick = () => ajustarDescanso(PASSO_DESCANSO);
 descansoMenosBtn.onclick = () => ajustarDescanso(-PASSO_DESCANSO);
 descansoResetBtn.onclick = resetarDescanso;
 setDescansoEditavel(true);
+
+// Play/pause do tempo de treino (não inicia sozinho)
+const treinoPlayBtn = document.getElementById('treino-play');
+treinoPlayBtn.onclick = alternarTreino;
+
+// Se a pessoa digitar, o nome vira "manual"; se apagar, volta ao automático
+sessaoNomeInput.addEventListener('input', () => {
+  nomeManual = sessaoNomeInput.value.trim() !== '';
+});
+
+function tempoTotalSeg() {
+  if (!sessaoAtual) return 0;
+  let t = sessaoAtual.decorrido || 0;
+  if (sessaoAtual.rodando && sessaoAtual.inicio) t += (Date.now() - sessaoAtual.inicio) / 1000;
+  return Math.floor(t);
+}
+function playTreino() {
+  if (!sessaoAtual || sessaoAtual.rodando) return;
+  sessaoAtual.inicio = Date.now();
+  sessaoAtual.rodando = true;
+  treinoPlayBtn.classList.add('rodando');
+}
+function pausarTreino() {
+  if (!sessaoAtual || !sessaoAtual.rodando) return;
+  sessaoAtual.decorrido = (sessaoAtual.decorrido || 0) + (Date.now() - sessaoAtual.inicio) / 1000;
+  sessaoAtual.inicio = null;
+  sessaoAtual.rodando = false;
+  treinoPlayBtn.classList.remove('rodando');
+}
+function alternarTreino() {
+  if (sessaoAtual && sessaoAtual.rodando) pausarTreino();
+  else playTreino();
+}
 
 // Aumenta/diminui o tempo de descanso pelas setas (só quando está parado)
 function ajustarDescanso(delta) {
@@ -534,7 +855,9 @@ function iniciarSessao(treino) {
   sessaoAtual = {
     treinoId: treino.id,
     nome: treino.nome,
-    inicio: Date.now(),
+    inicio: null,
+    rodando: false,
+    decorrido: 0,
     exercicios: treino.exercicios.map((ex) => ({
       nome: ex.nome,
       grupo: ex.grupo || '',
@@ -556,7 +879,9 @@ function iniciarSessaoLivre() {
   sessaoAtual = {
     treinoId: null,
     nome: 'Treino livre',
-    inicio: Date.now(),
+    inicio: null,
+    rodando: false,
+    decorrido: 0,
     exercicios: [],
   };
   abrirSessao('Treino livre');
@@ -564,6 +889,8 @@ function iniciarSessaoLivre() {
 
 function abrirSessao(titulo) {
   document.getElementById('sessao-titulo').textContent = titulo;
+  sessaoNomeInput.value = (sessaoAtual.nome && sessaoAtual.nome !== 'Treino livre') ? sessaoAtual.nome : '';
+  nomeManual = sessaoNomeInput.value.trim() !== '';
   sessGrupoSel.value = '';
   sessSugestaoSel.innerHTML = '<option value="">Exercício</option>';
   sessSugestaoSel.disabled = true;
@@ -571,9 +898,11 @@ function abrirSessao(titulo) {
   descansoBtn.classList.remove('ativo', 'fim');
   setDescansoEditavel(true);
   mostrarDescansoParado();
+  treinoPlayBtn.classList.remove('rodando');
   trocarAba('hoje');
   renderSessaoAtiva();
   iniciarCronometro();
+  armarPip();
 }
 
 // Adiciona um exercício escolhido na lista durante a sessão
@@ -603,11 +932,16 @@ function adicionarSerie(ei) {
 }
 
 function removerSerie(ei, si) {
+  const s = sessaoAtual.exercicios[ei].series[si];
+  if (s && s.feita && !confirm('Apagar esta série já realizada?')) return;
   sessaoAtual.exercicios[ei].series.splice(si, 1);
   renderSessaoAtiva();
 }
 
 function removerExercicioSessao(ei) {
+  const ex = sessaoAtual.exercicios[ei];
+  const temFeita = ex.series.some((s) => s.feita);
+  if (temFeita && !confirm(`Apagar "${ex.nome}"? Este exercício já tem séries realizadas.`)) return;
   sessaoAtual.exercicios.splice(ei, 1);
   renderSessaoAtiva();
 }
@@ -623,8 +957,11 @@ function renderSessaoAtiva() {
   }
 
   sessaoAtual.exercicios.forEach((ex, ei) => {
+    const feitas = ex.series.filter((s) => s.feita).length;
+    const total = ex.series.length;
+    const completo = total > 0 && feitas === total;
     const bloco = document.createElement('div');
-    bloco.className = 'sessao-ex';
+    bloco.className = 'sessao-ex' + (ex.colapsado ? ' colapsado' : '') + (completo ? ' completo' : '');
     const series = ex.series
       .map(
         (s, si) => `
@@ -639,18 +976,36 @@ function renderSessaoAtiva() {
       .join('');
     bloco.innerHTML = `
       <div class="card-head">
-        <h3>${escapar(ex.nome)}${ex.grupo ? `<span class="grupo-tag">${escapar(ex.grupo)}</span>` : ''}</h3>
-        <button class="btn small danger remover-ex-sessao" data-ei="${ei}" title="Remover exercício">×</button>
+        <div class="ex-head-info" data-ei="${ei}">
+          <h3>${escapar(ex.nome)}${ex.grupo ? `<span class="grupo-tag">${escapar(ex.grupo)}</span>` : ''}</h3>
+        </div>
+        <div class="ex-head-actions">
+          <span class="ex-contagem">${feitas}/${total}</span>
+          <button class="ex-toggle" type="button" data-ei="${ei}" aria-label="Minimizar/expandir exercício">
+            <svg class="chev" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+          <button class="btn small danger remover-ex-sessao" data-ei="${ei}" title="Remover exercício">×</button>
+        </div>
       </div>
-      <div class="serie-row cab"><span></span><span>carga (kg)</span><span>reps</span><span>ok</span><span></span></div>
-      ${series}
-      <div class="serie-add">
-        <button class="btn small add-serie" data-ei="${ei}">+ série</button>
+      <div class="ex-corpo">
+        <div class="serie-row cab"><span></span><span>carga (kg)</span><span>reps</span><span>ok</span><span></span></div>
+        ${series}
+        <div class="serie-add">
+          <button class="btn small add-serie" data-ei="${ei}">+ série</button>
+        </div>
       </div>
     `;
     sessaoExerciciosEl.appendChild(bloco);
   });
 
+  // Minimizar/expandir exercício (ícone à direita ou tocando no nome)
+  sessaoExerciciosEl.querySelectorAll('.ex-toggle, .ex-head-info').forEach((el) => {
+    el.onclick = () => {
+      const ex = sessaoAtual.exercicios[el.dataset.ei];
+      ex.colapsado = !ex.colapsado;
+      renderSessaoAtiva();
+    };
+  });
   // Inputs de carga/reps
   sessaoExerciciosEl.querySelectorAll('.s-carga, .s-reps').forEach((inp) => {
     inp.onchange = () => {
@@ -659,12 +1014,13 @@ function renderSessaoAtiva() {
       else s.reps = parseInt(inp.value) || 0;
     };
   });
-  // Marcar série feita -> reinicia o cronômetro de descanso
+  // Marcar série feita -> reinicia o descanso (NÃO minimiza sozinho)
   sessaoExerciciosEl.querySelectorAll('.serie-check').forEach((chk) => {
     chk.onchange = () => {
-      sessaoAtual.exercicios[chk.dataset.ei].series[chk.dataset.si].feita = chk.checked;
-      chk.closest('.serie-row').classList.toggle('done', chk.checked);
+      const ex = sessaoAtual.exercicios[chk.dataset.ei];
+      ex.series[chk.dataset.si].feita = chk.checked;
       if (chk.checked) iniciarDescanso();
+      renderSessaoAtiva();
     };
   });
   // Botões de série / exercício
@@ -677,6 +1033,8 @@ function renderSessaoAtiva() {
   sessaoExerciciosEl.querySelectorAll('.remover-ex-sessao').forEach((b) => {
     b.onclick = () => removerExercicioSessao(+b.dataset.ei);
   });
+
+  atualizarNomeAuto();
 }
 
 // ---- Cronômetros: total do treino (progressivo) + descanso (regressivo) ----
@@ -687,7 +1045,7 @@ function iniciarCronometro() {
 }
 function tickCronometros() {
   if (!sessaoAtual) return;
-  cronTotalEl.textContent = fmtTempo(Math.floor((Date.now() - sessaoAtual.inicio) / 1000));
+  cronTotalEl.textContent = fmtTempo(tempoTotalSeg());
   if (descansoFim) {
     const restanteMs = descansoFim - Date.now();
     if (restanteMs <= 0) {
@@ -697,7 +1055,7 @@ function tickCronometros() {
       cronDescansoEl.textContent = fmtTempo(Math.ceil(restanteMs / 1000));
     }
   }
-  if (pipAtivo) desenharPip();
+  if (pipArmado) desenharPip();
 }
 
 // Inicia/reinicia a contagem regressiva do descanso a partir do tempo alvo
@@ -716,7 +1074,7 @@ function finalizarDescanso() {
   descansoBtn.classList.add('fim');
   setDescansoEditavel(true);
   beepDescanso();
-  toast('Descanso acabou! Bora pra próxima');
+  toast('Descanso acabou! Bora pra próxima (toque para fechar)', 0);
 }
 
 // Mostra o tempo alvo parado (quando não está em contagem)
@@ -743,15 +1101,47 @@ function beepDescanso() {
 }
 
 // ---- Cronômetro flutuante (Picture-in-Picture) sobre outros apps ----
-const pipBtn = document.getElementById('pip-btn');
 const pipCanvas = document.getElementById('pip-canvas');
 const pipVideo = document.getElementById('pip-video');
 const pipCtx = pipCanvas.getContext('2d');
 let pipAtivo = false;
+let pipArmado = false;
 
-pipBtn.onclick = alternarPip;
+// Clicar no cronômetro: começa o descanso (se estiver parado) e abre a janela flutuante
+descansoBtn.onclick = tocarDescanso;
+pipVideo.addEventListener('enterpictureinpicture', () => { pipAtivo = true; });
 pipVideo.addEventListener('leavepictureinpicture', () => { pipAtivo = false; });
 
+// Ao sair do app durante o treino, tenta abrir o flutuante automaticamente
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden && sessaoAtual && pipArmado && !document.pictureInPictureElement) {
+    if (pipVideo.requestPictureInPicture) pipVideo.requestPictureInPicture().catch(() => {});
+  }
+});
+
+// "Arma" o flutuante no início da sessão (auto-PiP ao trocar de app)
+function armarPip() {
+  if (!('pictureInPictureEnabled' in document) || !document.pictureInPictureEnabled) return;
+  try {
+    desenharPip();
+    if (!pipVideo.srcObject) pipVideo.srcObject = pipCanvas.captureStream(2);
+    pipVideo.autoPictureInPicture = true;
+    pipVideo.setAttribute('autopictureinpicture', '');
+    const p = pipVideo.play();
+    if (p && p.catch) p.catch(() => {});
+    pipArmado = true;
+  } catch { /* navegador sem suporte */ }
+}
+
+// Desarma e fecha o flutuante ao encerrar a sessão
+function desarmarPip() {
+  pipArmado = false;
+  pipAtivo = false;
+  try { if (document.pictureInPictureElement) document.exitPictureInPicture(); } catch {}
+  try { pipVideo.pause(); } catch {}
+}
+
+// Botão manual para abrir/fechar o flutuante
 async function alternarPip() {
   if (!document.pictureInPictureEnabled) {
     alert('Seu navegador não suporta o cronômetro flutuante. Use o Chrome no Android.');
@@ -760,17 +1150,25 @@ async function alternarPip() {
   try {
     if (document.pictureInPictureElement) {
       await document.exitPictureInPicture();
-      pipAtivo = false;
       return;
     }
     desenharPip();
     if (!pipVideo.srcObject) pipVideo.srcObject = pipCanvas.captureStream(2);
     await pipVideo.play();
     await pipVideo.requestPictureInPicture();
-    pipAtivo = true;
   } catch (e) {
     alert('Não consegui abrir o cronômetro flutuante: ' + e.message);
   }
+}
+
+// Toque no cronômetro de descanso: inicia a contagem (se parado) e abre o flutuante
+function tocarDescanso() {
+  if (document.pictureInPictureElement) {
+    document.exitPictureInPicture().catch(() => {});
+    return;
+  }
+  if (!descansoFim) iniciarDescanso();
+  alternarPip();
 }
 
 // Desenha o cronômetro na mini-janela flutuante
@@ -807,12 +1205,34 @@ function cancelarSessao() {
   renderTreinos();
 }
 
+// Nome automático com os grupos musculares treinados (ex: "Peito + Ombros + Bíceps")
+function nomePorGrupos() {
+  const grupos = [];
+  sessaoAtual.exercicios.forEach((ex) => {
+    if (ex.grupo && !grupos.includes(ex.grupo)) grupos.push(ex.grupo);
+  });
+  return grupos.length ? grupos.join(' + ') : 'Treino livre';
+}
+
+// Preenche o nome com os grupos treinados, enquanto a pessoa não digitar um próprio
+function atualizarNomeAuto() {
+  if (nomeManual || !sessaoAtual) return;
+  const grupos = [];
+  sessaoAtual.exercicios.forEach((ex) => {
+    if (ex.grupo && !grupos.includes(ex.grupo)) grupos.push(ex.grupo);
+  });
+  sessaoNomeInput.value = grupos.join(' + ');
+}
+
 function finalizarSessao() {
   if (sessaoAtual.exercicios.length === 0) {
     alert('Adicione ao menos um exercício antes de finalizar.');
     return;
   }
   if (!confirm('Deseja finalizar e salvar este treino?')) return;
+
+  // Nome: o que a pessoa digitou; se vazio, usa os grupos musculares treinados
+  const nomeFinal = sessaoNomeInput.value.trim() || nomePorGrupos();
   const totalSeries = sessaoAtual.exercicios.reduce((acc, ex) => acc + ex.series.length, 0);
   const feitas = sessaoAtual.exercicios.reduce(
     (acc, ex) => acc + ex.series.filter((s) => s.feita).length, 0
@@ -823,9 +1243,9 @@ function finalizarSessao() {
 
   historico.unshift({
     id: novoId(),
-    nome: sessaoAtual.nome || 'Treino livre',
+    nome: nomeFinal,
     data: Date.now(),
-    duracaoSeg: Math.floor((Date.now() - sessaoAtual.inicio) / 1000),
+    duracaoSeg: tempoTotalSeg(),
     seriesFeitas: feitas,
     seriesTotal: totalSeries,
     volume: Math.round(volume),
@@ -856,7 +1276,9 @@ function reabrirSessao(h) {
   sessaoAtual = {
     treinoId: null,
     nome: h.nome,
-    inicio: Date.now() - (h.duracaoSeg || 0) * 1000,
+    inicio: null,
+    rodando: false,
+    decorrido: h.duracaoSeg || 0,
     exercicios: h.exercicios.map((ex) => ({
       nome: ex.nome,
       grupo: ex.grupo || '',
@@ -870,12 +1292,15 @@ function reabrirSessao(h) {
 }
 
 function encerrarSessao() {
+  desarmarPip();
   clearInterval(cronometroId);
   cronometroId = null;
   sessaoAtual = null;
   descansoFim = null;
   cronTotalEl.textContent = '00:00';
+  sessaoNomeInput.value = '';
   descansoBtn.classList.remove('ativo', 'fim');
+  treinoPlayBtn.classList.remove('rodando');
   setDescansoEditavel(true);
   mostrarDescansoParado();
   sessaoAtivaEl.classList.add('hidden');
@@ -997,8 +1422,26 @@ function sessoesPorDia() {
   return mapa;
 }
 
+// Converte 'AAAA-MM-DD' (input date) para a chave do dia usada no calendário
+function chaveDiaProgramado(str) {
+  if (!str) return null;
+  const [y, m, d] = str.split('-').map(Number);
+  return `${y}-${m - 1}-${d}`;
+}
+
+// Mapa: chaveDia -> nomes de treinos PROGRAMADOS para aquele dia
+function programadosPorDia() {
+  const mapa = {};
+  treinos.forEach((t) => {
+    const k = chaveDiaProgramado(t.dataProgramada);
+    if (k) (mapa[k] = mapa[k] || []).push(t.nome);
+  });
+  return mapa;
+}
+
 function renderDashboard() {
   const mapa = sessoesPorDia();
+  const progMapa = programadosPorDia();
   const hoje = new Date();
   const hojeK = `${hoje.getFullYear()}-${hoje.getMonth()}-${hoje.getDate()}`;
 
@@ -1013,21 +1456,32 @@ function renderDashboard() {
   const cal = document.getElementById('calendario');
   cal.innerHTML = '';
 
-  for (let i = 0; i < primeiroDia; i++) {
-    const vazio = document.createElement('div');
-    vazio.className = 'cal-cell empty';
-    cal.appendChild(vazio);
-  }
+  // Grade completa: começa no domingo da 1ª semana e cobre semanas inteiras
+  const inicioGrade = new Date(calAno, calMes, 1 - primeiroDia);
+  const numCelulas = Math.ceil((primeiroDia + diasNoMes) / 7) * 7;
 
   let totalMes = 0;
-  for (let dia = 1; dia <= diasNoMes; dia++) {
-    const k = `${calAno}-${calMes}-${dia}`;
+  for (let i = 0; i < numCelulas; i++) {
+    const d = new Date(inicioGrade);
+    d.setDate(inicioGrade.getDate() + i);
+    const k = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+    const noMes = d.getMonth() === calMes;
     const treinou = !!mapa[k];
-    if (treinou) totalMes += mapa[k].length;
+    const prog = !!progMapa[k];
+    if (treinou && noMes) totalMes += mapa[k].length;
     const cell = document.createElement('div');
-    cell.className = 'cal-cell' + (treinou ? ' treinou' : '') + (k === hojeK ? ' hoje' : '');
-    cell.innerHTML = `${dia}${treinou ? '<span class="dot">●</span>' : ''}`;
-    if (treinou) cell.title = mapa[k].join(', ');
+    cell.className = 'cal-cell'
+      + (noMes ? '' : ' outro-mes')
+      + (treinou ? ' treinou' : '')
+      + (prog ? ' programado' : '')
+      + (k === hojeK ? ' hoje' : '');
+    cell.innerHTML = `${d.getDate()}`
+      + (treinou ? '<span class="dot">●</span>' : '')
+      + (prog ? '<span class="prog-mark">●</span>' : '');
+    const titulos = [];
+    if (treinou) titulos.push('Feito: ' + mapa[k].join(', '));
+    if (prog) titulos.push('Programado: ' + progMapa[k].join(', '));
+    if (titulos.length) cell.title = titulos.join(' | ');
     cal.appendChild(cell);
   }
 
@@ -1046,15 +1500,16 @@ function renderDashboard() {
     d.setDate(inicioSemana.getDate() + i);
     const k = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
     const nomes = [...new Set(mapa[k] || [])];
+    const prog = [...new Set(progMapa[k] || [])];
     const ehHoje = k === hojeK;
     const div = document.createElement('div');
-    div.className = 'week-day' + (nomes.length ? ' treinou' : '') + (ehHoje ? ' hoje' : '');
+    div.className = 'week-day' + (nomes.length ? ' treinou' : '') + (prog.length ? ' tem-prog' : '') + (ehHoje ? ' hoje' : '');
     div.innerHTML = `
       <div class="wd-nome">${NOMES_SEMANA[i]}</div>
       <div class="wd-num">${d.getDate()}</div>
-      ${nomes.length
-        ? `<div class="wd-treinos">${nomes.map((n) => escapar(n)).join('<br>')}</div>`
-        : '<div class="wd-vazio">–</div>'}
+      ${nomes.length ? `<div class="wd-treinos">${nomes.map((n) => escapar(n)).join('<br>')}</div>` : ''}
+      ${prog.length ? `<div class="wd-prog">${prog.map((n) => escapar(n)).join('<br>')}</div>` : ''}
+      ${(!nomes.length && !prog.length) ? '<div class="wd-vazio">–</div>' : ''}
     `;
     semanaEl.appendChild(div);
   }
@@ -1109,30 +1564,125 @@ const resumoStatsEl = document.getElementById('resumo-stats');
 const volumeGruposEl = document.getElementById('volume-grupos');
 const recordesEl = document.getElementById('recordes');
 const resultadosVazioEl = document.getElementById('resultados-vazio');
+const evoChartEl = document.getElementById('evo-chart');
+const statsDashEl = document.getElementById('stats-dash');
+
+// Calendário do mês (Stats) — navegação própria
+const _agStats = new Date();
+let statsCalAno = _agStats.getFullYear();
+let statsCalMes = _agStats.getMonth();
+document.getElementById('stats-mes-anterior').onclick = () => {
+  if (--statsCalMes < 0) { statsCalMes = 11; statsCalAno--; }
+  renderStatsCalendario();
+};
+document.getElementById('stats-mes-proximo').onclick = () => {
+  if (++statsCalMes > 11) { statsCalMes = 0; statsCalAno++; }
+  renderStatsCalendario();
+};
+
+// Sequência de dias seguidos treinados (terminando hoje ou ontem)
+function sequenciaDias(diasSet) {
+  const d = new Date(); d.setHours(0, 0, 0, 0);
+  const k = (x) => `${x.getFullYear()}-${x.getMonth()}-${x.getDate()}`;
+  if (!diasSet.has(k(d))) d.setDate(d.getDate() - 1);
+  let n = 0;
+  while (diasSet.has(k(d))) { n++; d.setDate(d.getDate() - 1); }
+  return n;
+}
+
+function renderStatsCalendario() {
+  const mapa = sessoesPorDia();
+  const hoje = new Date();
+  const hojeK = `${hoje.getFullYear()}-${hoje.getMonth()}-${hoje.getDate()}`;
+  document.getElementById('stats-mes-titulo').textContent =
+    new Date(statsCalAno, statsCalMes, 1).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+  const primeiroDia = new Date(statsCalAno, statsCalMes, 1).getDay();
+  const diasNoMes = new Date(statsCalAno, statsCalMes + 1, 0).getDate();
+  const inicioGrade = new Date(statsCalAno, statsCalMes, 1 - primeiroDia);
+  const numCelulas = Math.ceil((primeiroDia + diasNoMes) / 7) * 7;
+  const cal = document.getElementById('stats-calendario');
+  cal.innerHTML = '';
+  let total = 0;
+  for (let i = 0; i < numCelulas; i++) {
+    const d = new Date(inicioGrade);
+    d.setDate(inicioGrade.getDate() + i);
+    const k = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+    const noMes = d.getMonth() === statsCalMes;
+    const treinou = !!mapa[k];
+    if (treinou && noMes) total += mapa[k].length;
+    const cell = document.createElement('div');
+    cell.className = 'cal-cell' + (noMes ? '' : ' outro-mes') + (treinou ? ' treinou' : '') + (k === hojeK ? ' hoje' : '');
+    cell.innerHTML = `${d.getDate()}${treinou ? '<span class="dot">●</span>' : ''}`;
+    if (treinou) cell.title = mapa[k].join(', ');
+    cal.appendChild(cell);
+  }
+  document.getElementById('stats-mes-resumo').textContent =
+    total > 0 ? `${total} treino(s) neste mês` : 'Nenhum treino neste mês';
+}
 
 function renderResultados() {
   const vazio = historico.length === 0;
   resultadosVazioEl.classList.toggle('hidden', !vazio);
-  resumoStatsEl.classList.toggle('hidden', vazio);
   document.querySelectorAll('#resultados h3').forEach((h) => h.classList.toggle('hidden', vazio));
+  [resumoStatsEl, volumeGruposEl, recordesEl, evoChartEl, statsDashEl]
+    .forEach((el) => el && el.classList.toggle('hidden', vazio));
   if (vazio) {
     resumoStatsEl.innerHTML = '';
     volumeGruposEl.innerHTML = '';
     recordesEl.innerHTML = '';
+    evoChartEl.innerHTML = '';
     return;
   }
 
-  const totalSessoes = historico.length;
+  // ----- Frequência / sequência -----
+  const agora = new Date();
+  const hoje0 = new Date(agora); hoje0.setHours(0, 0, 0, 0);
+  const inicioSemana = new Date(hoje0); inicioSemana.setDate(hoje0.getDate() - hoje0.getDay());
+  const inicioMes = new Date(agora.getFullYear(), agora.getMonth(), 1).getTime();
+  const treinosSemana = historico.filter((h) => h.data >= inicioSemana.getTime()).length;
+  const doMes = historico.filter((h) => h.data >= inicioMes);
+  const diasMes = new Set(doMes.map((h) => chaveDia(h.data))).size;
+  const streak = sequenciaDias(new Set(historico.map((h) => chaveDia(h.data))));
+
+  // ----- Totais / médias -----
   const volumeTotal = historico.reduce((a, h) => a + (h.volume || 0), 0);
   const tempoTotal = historico.reduce((a, h) => a + (h.duracaoSeg || 0), 0);
   const seriesTotal = historico.reduce((a, h) => a + (h.seriesFeitas || 0), 0);
+  const mediaDur = Math.round(tempoTotal / historico.length / 60);
+  const mediaSeries = Math.round(seriesTotal / historico.length);
 
   resumoStatsEl.innerHTML = `
-    ${statCard(totalSessoes, 'Sessões')}
+    ${statCard(treinosSemana, 'Treinos na semana')}
+    ${statCard(doMes.length, 'Treinos no mês')}
+    ${statCard(diasMes, 'Dias no mês')}
+    ${statCard(streak, 'Sequência (dias)')}
     ${statCard(volumeTotal.toLocaleString('pt-BR') + ' kg', 'Volume total')}
     ${statCard(Math.round(tempoTotal / 60) + ' min', 'Tempo total')}
-    ${statCard(seriesTotal, 'Séries feitas')}
+    ${statCard(mediaDur + ' min', 'Média/treino')}
+    ${statCard(mediaSeries, 'Média de séries')}
   `;
+
+  // ----- Gráfico de evolução: volume por semana (últimas 8) -----
+  const SEMANAS = 8;
+  const semanas = [];
+  for (let i = SEMANAS - 1; i >= 0; i--) {
+    const ini = new Date(inicioSemana); ini.setDate(inicioSemana.getDate() - i * 7);
+    const fim = new Date(ini); fim.setDate(ini.getDate() + 7);
+    const naSemana = historico.filter((h) => h.data >= ini.getTime() && h.data < fim.getTime());
+    semanas.push({ ini, vol: naSemana.reduce((a, h) => a + (h.volume || 0), 0), treinos: naSemana.length });
+  }
+  const maxSem = Math.max(...semanas.map((s) => s.vol), 1);
+  evoChartEl.innerHTML = semanas.map((s) => {
+    const alt = Math.round((s.vol / maxSem) * 100);
+    const lbl = `${String(s.ini.getDate()).padStart(2, '0')}/${String(s.ini.getMonth() + 1).padStart(2, '0')}`;
+    return `<div class="evo-bar" title="Semana de ${lbl}: ${Math.round(s.vol).toLocaleString('pt-BR')} kg · ${s.treinos} treino(s)">
+      <div class="evo-fill" style="height:${Math.max(2, alt)}%"></div>
+      <span class="evo-lbl">${lbl}</span>
+    </div>`;
+  }).join('');
+
+  // ----- Calendário do mês -----
+  renderStatsCalendario();
 
   // Volume por grupo muscular
   const porGrupo = {};
@@ -1220,6 +1770,7 @@ function adicionarAlimento() {
 }
 
 function renderDieta() {
+  renderAgua();
   const itensHoje = dieta.filter((d) => d.dia === diaDeHoje());
   listaDietaEl.innerHTML = '';
   dietaVazioEl.classList.toggle('hidden', itensHoje.length > 0);
@@ -1259,12 +1810,137 @@ function renderDieta() {
 }
 
 // =====================================================================
+// ÁGUA — meta diária + lembrete com cronômetro
+// =====================================================================
+const PASSO_META_AGUA = 500;
+const aguaBarraEl = document.getElementById('agua-barra');
+const aguaTotalEl = document.getElementById('agua-total');
+const aguaMetaValEl = document.getElementById('agua-meta-val');
+const aguaBebiMlEl = document.getElementById('agua-bebi-ml');
+const aguaMlInput = document.getElementById('agua-ml');
+const aguaCronEl = document.getElementById('agua-cron');
+const aguaStartBtn = document.getElementById('agua-start');
+
+aguaMlInput.value = lembreteAgua.ml;
+mostrarLembreteParado();
+
+// Editar o tempo digitando direto no cronômetro (mm:ss), quando parado
+aguaCronEl.onchange = () => {
+  if (aguaLembreteFim) return;
+  lembreteAgua.min = parseMinAgua(aguaCronEl.value);
+  salvar(STORAGE.aguaLembrete, lembreteAgua);
+  mostrarLembreteParado();
+};
+function parseMinAgua(str) {
+  str = (str || '').trim();
+  let min;
+  if (str.includes(':')) {
+    const [m, s] = str.split(':');
+    min = (parseInt(m) || 0) + (parseInt(s) || 0) / 60;
+  } else {
+    min = parseFloat(str) || 0;
+  }
+  return Math.min(240, Math.max(0.25, min));
+}
+
+document.getElementById('agua-meta-menos').onclick = () => ajustarMetaAgua(-PASSO_META_AGUA);
+document.getElementById('agua-meta-mais').onclick = () => ajustarMetaAgua(PASSO_META_AGUA);
+aguaMlInput.onchange = () => {
+  lembreteAgua.ml = Math.max(50, parseInt(aguaMlInput.value) || 50);
+  salvar(STORAGE.aguaLembrete, lembreteAgua);
+  aguaMlInput.value = lembreteAgua.ml;
+  renderAgua();
+};
+document.getElementById('agua-min-mais').onclick = () => ajustarMinAgua(5);
+document.getElementById('agua-min-menos').onclick = () => ajustarMinAgua(-5);
+aguaStartBtn.onclick = () => { if (aguaLembreteFim) pararLembreteAgua(); else iniciarLembreteAgua(); };
+document.getElementById('agua-bebi').onclick = () => {
+  addAgua(lembreteAgua.ml);
+  if (aguaLembreteFim) iniciarLembreteAgua();
+};
+document.getElementById('agua-zerar').onclick = () => {
+  garantirAguaHoje();
+  aguaHoje.ml = 0;
+  salvar(STORAGE.aguaHoje, aguaHoje);
+  renderAgua();
+};
+
+function ajustarMetaAgua(delta) {
+  metaAgua = Math.min(5000, Math.max(500, metaAgua + delta));
+  salvar(STORAGE.metaAgua, metaAgua);
+  renderAgua();
+}
+function ajustarMinAgua(delta) {
+  lembreteAgua.min = Math.max(0.25, lembreteAgua.min + delta);
+  salvar(STORAGE.aguaLembrete, lembreteAgua);
+  if (aguaLembreteFim) iniciarLembreteAgua();
+  else mostrarLembreteParado();
+}
+function garantirAguaHoje() {
+  if (!aguaHoje || aguaHoje.dia !== diaDeHoje()) {
+    aguaHoje = { dia: diaDeHoje(), ml: 0 };
+    salvar(STORAGE.aguaHoje, aguaHoje);
+  }
+}
+function addAgua(ml) {
+  garantirAguaHoje();
+  aguaHoje.ml = Math.max(0, aguaHoje.ml + ml);
+  salvar(STORAGE.aguaHoje, aguaHoje);
+  renderAgua();
+}
+function renderAgua() {
+  garantirAguaHoje();
+  aguaMetaValEl.textContent = (metaAgua / 1000).toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' L';
+  aguaBebiMlEl.textContent = `(${lembreteAgua.ml} ml)`;
+  const pct = metaAgua > 0 ? Math.min(100, (aguaHoje.ml / metaAgua) * 100) : 0;
+  aguaBarraEl.style.width = pct + '%';
+  aguaTotalEl.textContent = `${aguaHoje.ml.toLocaleString('pt-BR')} / ${metaAgua.toLocaleString('pt-BR')} ml`
+    + (aguaHoje.ml >= metaAgua && metaAgua > 0 ? ' — meta batida!' : '');
+}
+
+function mostrarLembreteParado() {
+  if (!aguaLembreteFim) aguaCronEl.value = fmtTempo(Math.round(lembreteAgua.min * 60));
+}
+function iniciarLembreteAgua() {
+  aguaLembreteFim = Date.now() + lembreteAgua.min * 60 * 1000;
+  aguaStartBtn.textContent = 'Parar';
+  aguaCronEl.readOnly = true;
+  clearInterval(aguaLembreteId);
+  tickAgua();
+  aguaLembreteId = setInterval(tickAgua, 1000);
+}
+function pararLembreteAgua() {
+  clearInterval(aguaLembreteId);
+  aguaLembreteId = null;
+  aguaLembreteFim = null;
+  aguaStartBtn.textContent = 'Iniciar';
+  aguaCronEl.readOnly = false;
+  mostrarLembreteParado();
+}
+function tickAgua() {
+  if (!aguaLembreteFim) return;
+  const restMs = aguaLembreteFim - Date.now();
+  if (restMs <= 0) {
+    aguaCronEl.value = '00:00';
+    beepDescanso();
+    toast('Hora de beber água! Toque em "Bebi" (toque para fechar)', 0);
+    aguaLembreteFim = Date.now() + lembreteAgua.min * 60 * 1000; // reinicia o lembrete
+  } else {
+    aguaCronEl.value = fmtTempo(Math.ceil(restMs / 1000));
+  }
+}
+
+// =====================================================================
 // Utilidades
 // =====================================================================
+// Codifica para HTML seguro em contexto de texto E de atributo (inclui aspas)
 function escapar(str) {
-  const div = document.createElement('div');
-  div.textContent = str;
-  return div.innerHTML;
+  return String(str ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
 function formatarData(ts) {
@@ -1275,15 +1951,16 @@ function formatarData(ts) {
 }
 
 let toastTimer = null;
-function toast(msg) {
+function toast(msg, duracao = 2500) {
   let el = document.querySelector('.toast');
   if (el) el.remove();
   el = document.createElement('div');
   el.className = 'toast';
   el.textContent = msg;
+  el.onclick = () => el.remove(); // tocar para fechar
   document.body.appendChild(el);
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => el.remove(), 2500);
+  if (duracao > 0) toastTimer = setTimeout(() => el.remove(), duracao); // 0 = fica até tocar
 }
 
 // ---- PWA: registra o service worker (só quando servido via http/https) ----
@@ -1294,4 +1971,5 @@ if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
 }
 
 // ---- Inicialização ----
+montarDatalistExercicios();
 renderTreinos();
