@@ -1,5 +1,5 @@
 // Service Worker — cache do app para funcionar offline
-const CACHE = 'meu-treino-v62';
+const CACHE = 'meu-treino-v76';
 const ASSETS = [
   './',
   './index.html',

@@ -105,8 +105,9 @@
           <div class="add-ex-sessao">
             <select id="sess-grupo"><option value="">Grupo muscular</option></select>
             <select id="sess-sugestao" disabled><option value="">Exercício</option></select>
-            <button id="add-ex-sessao-btn" class="btn primary">+ Exercício</button>
           </div>
+          <input type="text" id="sess-outro" class="sess-outro hidden" placeholder="Escreva o nome do exercício" />
+          <button id="add-ex-sessao-btn" class="btn primary add-ex-btn">+ Exercício</button>
 
           <div class="sessao-acoes">
             <button id="cancelar-sessao-btn" class="btn ghost">Cancelar</button>
@@ -143,6 +144,17 @@
         <p class="muted">Modelos prontos. Clique em “Adicionar aos meus treinos” e depois ajuste cargas no editor.</p>
         <div id="filtro-sugestoes" class="chips"></div>
         <div id="lista-sugestoes" class="card-list"></div>
+
+        <h3>Meus exercícios</h3>
+        <div class="card">
+          <p class="muted" style="margin-bottom:12px">Não achou um exercício na lista? Adicione aqui — ele passa a aparecer na busca e nos seus treinos.</p>
+          <div class="custom-form">
+            <select id="custom-grupo"></select>
+            <input type="text" id="custom-nome" placeholder="Nome do exercício" />
+            <button id="custom-add" class="btn primary">+ Adicionar</button>
+          </div>
+          <div id="custom-lista" class="card-list"></div>
+        </div>
       </section>
 
       <!-- TREINOS CONCLUÍDOS -->
@@ -291,6 +303,33 @@
       <div class="modal-acoes">
         <button id="cancelar-treino-btn" class="btn ghost">Cancelar</button>
         <button id="salvar-treino-btn" class="btn primary">Salvar treino</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: editar sessão concluída -->
+  <div id="modal-sessao" class="modal-overlay hidden">
+    <div class="modal">
+      <div class="modal-body">
+        <h2>Editar sessão</h2>
+        <label class="field">
+          Nome do treino
+          <input type="text" id="es-nome" />
+        </label>
+        <label class="field">
+          Data (dd/mm/aaaa)
+          <input type="text" id="es-data" inputmode="numeric" maxlength="10" placeholder="dd/mm/aaaa" />
+        </label>
+        <div class="es-nums">
+          <label class="field">Duração (min)<input type="number" id="es-dur" min="0" /></label>
+          <label class="field">Volume (kg)<input type="number" id="es-vol" min="0" /></label>
+          <label class="field">Séries feitas<input type="number" id="es-feitas" min="0" /></label>
+          <label class="field">Séries totais<input type="number" id="es-total" min="0" /></label>
+        </div>
+      </div>
+      <div class="modal-acoes">
+        <button id="es-cancelar" class="btn ghost">Cancelar</button>
+        <button id="es-salvar" class="btn primary">Salvar</button>
       </div>
     </div>
   </div>

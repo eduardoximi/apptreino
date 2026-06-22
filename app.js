@@ -11,6 +11,7 @@ const STORAGE = {
   aguaLembrete: 'mt_agua_lembrete',
   catalogo: 'mt_catalogo',
   custom: 'mt_exercicios_custom',
+  senha: 'mt_senha',
 };
 
 // Grupos musculares (derivados do catálogo ativo, definidos mais abaixo)
@@ -205,6 +206,7 @@ function opcoesExercicios(grupo, selecionado, placeholder) {
   }
   const custom = exerciciosCustom[grupo] || [];
   if (custom.length) html += `<optgroup label="Personalizados">${custom.map(opt).join('')}</optgroup>`;
+  html += '<option value="__outro__">Outro (digitar manualmente)</option>';
   return html;
 }
 
@@ -610,7 +612,10 @@ document.getElementById('add-exercicio-btn').onclick = () => {
   editorExerciciosEl.querySelectorAll('.exercicio-editor').forEach((el) => el.classList.add('colapsado'));
   adicionarLinhaExercicio();
 };
-document.getElementById('cancelar-treino-btn').onclick = fecharEditor;
+document.getElementById('cancelar-treino-btn').onclick = () => {
+  if (!confirm('Cancelar? As informações deste treino que não foram salvas serão perdidas.')) return;
+  fecharEditor();
+};
 document.getElementById('salvar-treino-btn').onclick = salvarTreino;
 
 function abrirEditor(id) {
@@ -684,7 +689,13 @@ function adicionarLinhaExercicio(dados = {}) {
   grupoSel.onchange = () => { popularSugestoes(); atualizarNomeTreinoAuto(); };
   // Ao escolher da lista, preenche o nome (mas o campo de texto continua editável)
   sugestaoSel.onchange = () => {
-    if (sugestaoSel.value) nomeInput.value = sugestaoSel.value;
+    if (sugestaoSel.value === '__outro__') {
+      nomeInput.value = '';
+      nomeInput.focus();
+      sugestaoSel.value = '';
+    } else if (sugestaoSel.value) {
+      nomeInput.value = sugestaoSel.value;
+    }
   };
   // Digitar/escolher no nome filtra todos os exercícios e espelha na lista "Exercício (lista)"
   nomeInput.addEventListener('input', () => {
@@ -713,6 +724,7 @@ function adicionarLinhaExercicio(dados = {}) {
     const r = adicionarExercicioCatalogo(grupo, nome);
     if (r === 'ok') { popularSugestoes(); toast('Exercício salvo na sua lista!'); }
     else if (r === 'dup') toast('Esse exercício já está na lista.');
+    div.classList.add('colapsado'); // minimiza o quadro após salvar
   };
   editorExerciciosEl.appendChild(div);
 }
@@ -762,6 +774,7 @@ const cronDescansoEl = document.getElementById('cron-descanso');
 const descansoBtn = document.getElementById('descanso-btn');
 const sessGrupoSel = document.getElementById('sess-grupo');
 const sessSugestaoSel = document.getElementById('sess-sugestao');
+const sessOutroInput = document.getElementById('sess-outro');
 
 const PASSO_DESCANSO = 15; // segundos por clique nas setas
 let descansoAlvo = Math.max(15, carregar(STORAGE.descansoAlvo, 90)); // segundos (padrão 1:30)
@@ -841,7 +854,14 @@ sessGrupoSel.innerHTML = '<option value="">Grupo muscular</option>' +
   GRUPOS.map((g) => `<option value="${g}">${g}</option>`).join('');
 sessGrupoSel.onchange = () => {
   sessSugestaoSel.innerHTML = opcoesExercicios(sessGrupoSel.value, '', 'Exercício');
-  sessSugestaoSel.disabled = listaExercicios(sessGrupoSel.value).length === 0;
+  sessSugestaoSel.disabled = !sessGrupoSel.value;
+  sessOutroInput.classList.add('hidden');
+  sessOutroInput.value = '';
+};
+sessSugestaoSel.onchange = () => {
+  const outro = sessSugestaoSel.value === '__outro__';
+  sessOutroInput.classList.toggle('hidden', !outro);
+  if (outro) { sessOutroInput.value = ''; sessOutroInput.focus(); }
 };
 
 function fmtTempo(seg) {
@@ -864,6 +884,7 @@ function iniciarSessao(treino) {
       reps: ex.reps,
       cargaAlvo: ex.carga,
       pesoMaquina: ex.pesoMaquina || 0,
+      colapsado: true, // começa minimizado
       series: Array.from({ length: ex.series }, () => ({
         reps: ex.reps,
         carga: ex.carga,
@@ -907,8 +928,16 @@ function abrirSessao(titulo) {
 
 // Adiciona um exercício escolhido na lista durante a sessão
 function adicionarExercicioSessao() {
-  const nome = sessSugestaoSel.value;
-  if (!nome) { alert('Escolha o grupo e o exercício na lista.'); return; }
+  let nome = sessSugestaoSel.value;
+  if (nome === '__outro__') {
+    nome = sessOutroInput.value.trim();
+    if (!nome) { alert('Escreva o nome do exercício.'); sessOutroInput.focus(); return; }
+    // Salva também na lista de exercícios do grupo (para reusar depois)
+    if (sessGrupoSel.value) adicionarExercicioCatalogo(sessGrupoSel.value, nome);
+  } else if (!nome) {
+    alert('Escolha o grupo e o exercício na lista.');
+    return;
+  }
   sessaoAtual.exercicios.push({
     nome,
     grupo: sessGrupoSel.value,
@@ -920,6 +949,8 @@ function adicionarExercicioSessao() {
   sessGrupoSel.value = '';
   sessSugestaoSel.innerHTML = '<option value="">Exercício</option>';
   sessSugestaoSel.disabled = true;
+  sessOutroInput.classList.add('hidden');
+  sessOutroInput.value = '';
   renderSessaoAtiva();
 }
 
@@ -940,8 +971,7 @@ function removerSerie(ei, si) {
 
 function removerExercicioSessao(ei) {
   const ex = sessaoAtual.exercicios[ei];
-  const temFeita = ex.series.some((s) => s.feita);
-  if (temFeita && !confirm(`Apagar "${ex.nome}"? Este exercício já tem séries realizadas.`)) return;
+  if (!confirm(`Excluir o exercício "${ex.nome}"?`)) return;
   sessaoAtual.exercicios.splice(ei, 1);
   renderSessaoAtiva();
 }
@@ -1329,6 +1359,7 @@ function renderFiltroSugestoes() {
 
 function renderSugestoes() {
   renderFiltroSugestoes();
+  renderCustomLista();
   listaSugestoesEl.innerHTML = '';
 
   const visiveis = filtroSugestao
@@ -1375,6 +1406,56 @@ function adicionarSugestao(sugestao) {
   salvar(STORAGE.treinos, treinos);
   renderTreinos();
   toast('Treino adicionado aos seus! Ajuste as cargas no editor.');
+}
+
+// ----- Meus exercícios (adicionar manualmente) -----
+const customGrupoSel = document.getElementById('custom-grupo');
+const customNomeInput = document.getElementById('custom-nome');
+
+function popularCustomGrupos() {
+  customGrupoSel.innerHTML = '<option value="">Grupo muscular</option>' +
+    GRUPOS.map((g) => `<option value="${escapar(g)}">${escapar(g)}</option>`).join('');
+}
+popularCustomGrupos();
+
+document.getElementById('custom-add').onclick = () => {
+  const grupo = customGrupoSel.value;
+  const nome = customNomeInput.value.trim();
+  if (!grupo) { alert('Escolha o grupo muscular.'); return; }
+  if (!nome) { alert('Digite o nome do exercício.'); return; }
+  const r = adicionarExercicioCatalogo(grupo, nome);
+  if (r === 'ok') { customNomeInput.value = ''; renderCustomLista(); toast('Exercício adicionado!'); }
+  else if (r === 'dup') toast('Esse exercício já existe na lista.');
+};
+
+function renderCustomLista() {
+  const cont = document.getElementById('custom-lista');
+  cont.innerHTML = '';
+  const grupos = Object.keys(exerciciosCustom).filter((g) => (exerciciosCustom[g] || []).length);
+  if (grupos.length === 0) {
+    cont.innerHTML = '<p class="muted">Você ainda não adicionou exercícios personalizados.</p>';
+    return;
+  }
+  grupos.forEach((g) => {
+    exerciciosCustom[g].forEach((nome) => {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML = `
+        <div class="card-head">
+          <div><h3>${escapar(nome)}</h3><div class="card-meta">${escapar(g)}</div></div>
+          <button class="btn small danger" title="Remover">×</button>
+        </div>`;
+      card.querySelector('button').onclick = () => {
+        if (!confirm(`Remover o exercício "${nome}" da sua lista?`)) return;
+        exerciciosCustom[g] = exerciciosCustom[g].filter((x) => x !== nome);
+        if (!exerciciosCustom[g].length) delete exerciciosCustom[g];
+        salvar(STORAGE.custom, exerciciosCustom);
+        montarDatalistExercicios();
+        renderCustomLista();
+      };
+      cont.appendChild(card);
+    });
+  });
 }
 
 // =====================================================================
@@ -1538,6 +1619,7 @@ function renderHistorico() {
           <div class="card-meta">${formatarData(h.data)} • ${min}m${seg}s</div>
         </div>
         <div class="card-actions">
+          <button class="btn small" data-acao="editar">Editar</button>
           <button class="btn small" data-acao="reabrir">Reabrir</button>
           <button class="btn small danger" data-acao="excluir" title="Excluir">×</button>
         </div>
@@ -1547,8 +1629,10 @@ function renderHistorico() {
       </div>
       <ul class="exercicio-resumo">${exItens}</ul>
     `;
+    card.querySelector('[data-acao="editar"]').onclick = () => editarSessao(h);
     card.querySelector('[data-acao="reabrir"]').onclick = () => reabrirSessao(h);
     card.querySelector('[data-acao="excluir"]').onclick = () => {
+      if (!confirm(`Excluir a sessão "${h.nome}" de ${formatarData(h.data)}?`)) return;
       historico = historico.filter((x) => x.id !== h.id);
       salvar(STORAGE.historico, historico);
       renderHistorico();
@@ -1556,6 +1640,62 @@ function renderHistorico() {
     listaHistoricoEl.appendChild(card);
   });
 }
+
+// ----- Editar sessão concluída -----
+const modalSessao = document.getElementById('modal-sessao');
+const esData = document.getElementById('es-data');
+let sessaoEditandoId = null;
+
+if (esData) esData.addEventListener('input', () => {
+  let v = esData.value.replace(/\D/g, '').slice(0, 8);
+  if (v.length >= 5) v = v.slice(0, 2) + '/' + v.slice(2, 4) + '/' + v.slice(4);
+  else if (v.length >= 3) v = v.slice(0, 2) + '/' + v.slice(2);
+  esData.value = v;
+});
+
+function tsParaDDMMYYYY(ts) {
+  const d = new Date(ts);
+  return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+}
+function ddmmyyyyParaTs(str, originalTs) {
+  const m = (str || '').match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (!m) return originalTs;
+  const [, d, mo, y] = m;
+  const orig = new Date(originalTs || Date.now());
+  const dt = new Date(+y, +mo - 1, +d, orig.getHours(), orig.getMinutes());
+  if (dt.getMonth() !== +mo - 1 || dt.getDate() !== +d) return originalTs;
+  return dt.getTime();
+}
+
+function editarSessao(h) {
+  if (!modalSessao) return;
+  sessaoEditandoId = h.id;
+  document.getElementById('es-nome').value = h.nome;
+  esData.value = tsParaDDMMYYYY(h.data);
+  document.getElementById('es-dur').value = Math.round((h.duracaoSeg || 0) / 60);
+  document.getElementById('es-vol').value = h.volume || 0;
+  document.getElementById('es-feitas').value = h.seriesFeitas || 0;
+  document.getElementById('es-total').value = h.seriesTotal || 0;
+  modalSessao.classList.remove('hidden');
+}
+
+const esCancelarBtn = document.getElementById('es-cancelar');
+if (esCancelarBtn) esCancelarBtn.onclick = () => modalSessao.classList.add('hidden');
+const esSalvarBtn = document.getElementById('es-salvar');
+if (esSalvarBtn) esSalvarBtn.onclick = () => {
+  const h = historico.find((x) => x.id === sessaoEditandoId);
+  if (!h) { modalSessao.classList.add('hidden'); return; }
+  h.nome = document.getElementById('es-nome').value.trim() || h.nome;
+  h.data = ddmmyyyyParaTs(esData.value.trim(), h.data);
+  h.duracaoSeg = Math.max(0, (parseInt(document.getElementById('es-dur').value) || 0) * 60);
+  h.volume = Math.max(0, parseInt(document.getElementById('es-vol').value) || 0);
+  h.seriesFeitas = Math.max(0, parseInt(document.getElementById('es-feitas').value) || 0);
+  h.seriesTotal = Math.max(0, parseInt(document.getElementById('es-total').value) || 0);
+  historico.sort((a, b) => b.data - a.data);
+  salvar(STORAGE.historico, historico);
+  modalSessao.classList.add('hidden');
+  renderHistorico();
+};
 
 // =====================================================================
 // RESULTADOS — estatísticas
@@ -1801,6 +1941,7 @@ function renderDieta() {
       </div>
     `;
     card.querySelector('button').onclick = () => {
+      if (!confirm(`Remover "${d.nome}" (${d.kcal} kcal)?`)) return;
       dieta = dieta.filter((x) => x.id !== d.id);
       salvar(STORAGE.dieta, dieta);
       renderDieta();

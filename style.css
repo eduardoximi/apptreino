@@ -49,6 +49,39 @@ h1, h2, h3 { font-weight: 800; letter-spacing: 0; color: var(--primary); }
 body.sem-topo .logo,
 body.sem-topo .search { display: none; }
 
+/* Tela de bloqueio */
+.lock-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.lock-box {
+  width: 100%;
+  max-width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  text-align: center;
+}
+.lock-logo { font-size: 1.7rem; color: var(--primary); margin-bottom: 4px; }
+.lock-box input { text-align: center; }
+.lock-erro { color: var(--danger); font-size: .85rem; margin: 0; }
+.lock-reset {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: .8rem;
+  cursor: pointer;
+  text-decoration: underline;
+  margin-top: 6px;
+  font-family: inherit;
+}
+
 .search { margin-bottom: 22px; }
 .search input {
   width: 100%;
@@ -637,10 +670,12 @@ select { cursor: pointer; }
 
 .add-ex-sessao {
   display: grid;
-  grid-template-columns: 1fr 1fr auto;
+  grid-template-columns: 1fr 1fr;
   gap: 8px;
-  margin: 6px 0 18px;
+  margin: 6px 0 8px;
 }
+.sess-outro { width: 100%; margin-bottom: 8px; }
+.add-ex-btn { width: 100%; margin-bottom: 18px; }
 
 .sessao-ex {
   background: var(--surface);
@@ -858,6 +893,13 @@ select { cursor: pointer; }
   gap: 8px;
   margin-bottom: 18px;
 }
+.custom-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.es-nums { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .dieta-meta { display: flex; gap: 12px; margin-bottom: 14px; }
 .barra-wrap {
   background: var(--surface-2);
@@ -1019,7 +1061,7 @@ select { cursor: pointer; }
   .sessao-acoes .btn { flex: 1; }
 
   /* ---- Formulários empilham ---- */
-  .dieta-form, .add-ex-sessao { grid-template-columns: 1fr; }
+  .dieta-form, .add-ex-sessao, .custom-form { grid-template-columns: 1fr; }
 
   /* ---- Calendário compacto ---- */
   .dash { padding: 14px; }
